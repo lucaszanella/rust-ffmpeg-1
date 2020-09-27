@@ -39,6 +39,37 @@ impl Video {
         }
     }
 
+    pub fn send<P: packet::Ref>(
+        &mut self,
+        packet: &P,
+    ) -> Result<bool, Error> {
+        unsafe {
+
+            match avcodec_send_packet(
+                self.as_mut_ptr(),
+                packet.as_ptr(),
+            ) {
+                e if e < 0 || e > 0 => Err(Error::from(e)),
+                _ => Ok(true),
+            }
+        }
+    }
+
+    pub fn receive<P: packet::Ref>(
+        &mut self,
+        out: &mut frame::Video,
+    ) -> Result<bool, Error> {
+        unsafe {
+            match avcodec_receive_frame(
+                self.as_mut_ptr(),
+                out.as_mut_ptr(),
+            ) {
+                e if e < 0 || e > 0 => Err(Error::from(e)),
+                _ => Ok(true)
+            }
+        }
+    }
+
     pub fn width(&self) -> u32 {
         unsafe { (*self.as_ptr()).width as u32 }
     }
