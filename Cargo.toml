@@ -84,6 +84,12 @@ build-lib-x264             = ["ffmpeg-sys-next/build-lib-x264"]
 build-lib-x265             = ["ffmpeg-sys-next/build-lib-x265"]
 build-lib-avs              = ["ffmpeg-sys-next/build-lib-avs"]
 build-lib-xvid             = ["ffmpeg-sys-next/build-lib-xvid"]
+build-lib-vdpau            = ["ffmpeg-sys-next/build-lib-vdpau"]
+build-lib-cuvid            = ["ffmpeg-sys-next/build-lib-cuvid"]
+
+
+link-lib-vdpau            = ["ffmpeg-sys-next/link-lib-vdpau"]
+link-lib-cuvid            = ["ffmpeg-sys-next/link-lib-cuvid"]
 
 # protocols
 build-lib-smbclient = ["ffmpeg-sys-next/build-lib-smbclient"]
