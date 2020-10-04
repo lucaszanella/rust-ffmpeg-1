@@ -15,6 +15,8 @@ pub mod discard;
 pub mod context;
 pub use self::context::Context;
 
+pub mod parser;
+
 pub mod capabilities;
 pub use self::capabilities::Capabilities;
 

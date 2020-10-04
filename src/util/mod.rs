@@ -7,6 +7,7 @@ pub mod error;
 pub mod format;
 pub mod frame;
 pub mod interrupt;
+pub mod cvec;
 pub mod log;
 pub mod mathematics;
 pub mod media;
