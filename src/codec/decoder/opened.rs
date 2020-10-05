@@ -75,13 +75,19 @@ impl Opened {
         }
     }
 
-    pub fn parse2(&mut self, buf: &[u8], pts: i64, dts: i64, pos: i64) -> Result<CVec, Error> {
+    pub fn parse2(
+        &mut self,
+        buf: &[u8],
+        pts: i64,
+        dts: i64,
+        pos: i64,
+    ) -> Result<(i32, Option<CVec>), Error> {
         unsafe {
             let mut poutbuf = self.packet.data_mut_ptr().unwrap();
             let mut poutbuf_size: i32 = 0;
             match self.avcodec_parser_context {
                 Some(avcodec_parser_context) => {
-                    match av_parser_parse2(
+                    let bytes_parsed = av_parser_parse2(
                         avcodec_parser_context,
                         self.as_mut_ptr(),
                         &mut poutbuf as *mut *mut u8,
@@ -91,9 +97,13 @@ impl Opened {
                         pts,
                         dts,
                         pos,
-                    ) {
-                        0 => Ok(CVec::new(poutbuf, poutbuf_size as usize)),
-                        e => Err(Error::from(e)),
+                    );
+                    match poutbuf_size {
+                        x if x > 0 => Ok((
+                            bytes_parsed,
+                            Some(CVec::new(poutbuf, poutbuf_size as usize)),
+                        )),
+                        _ => Ok((0, None)),
                     }
                 }
                 None => Err(Error::NoParserContext),
