@@ -52,6 +52,10 @@ impl Codec {
         unsafe { Id::from((*self.as_ptr()).id) }
     }
 
+    pub fn get_id(&self) -> i32 {
+        Into::<AVCodecID>::into(self.id()) as i32
+    }
+
     pub fn is_video(&self) -> bool {
         self.medium() == media::Type::Video
     }

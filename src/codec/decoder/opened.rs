@@ -64,9 +64,9 @@ impl Opened {
         }
     }
 
-    pub fn init_parser(&mut self, codec: &mut Codec) {
+    pub fn init_parser(&mut self, codec_id: i32) {
         unsafe {
-            let p = av_parser_init(Into::<AVCodecID>::into(codec.id()) as i32);
+            let p = av_parser_init(codec_id);
             if !p.is_null() {
                 self.avcodec_parser_context = Some(p)
             } else {
