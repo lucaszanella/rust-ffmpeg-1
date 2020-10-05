@@ -43,6 +43,7 @@ pub enum Error {
     BsfNotFound,
     DecoderNotFound,
     DemuxerNotFound,
+    NoParserContext,
     EncoderNotFound,
     OptionNotFound,
     MuxerNotFound,
@@ -130,6 +131,8 @@ impl Into<c_int> for Error {
             Error::HttpNotFound => AVERROR_HTTP_NOT_FOUND,
             Error::HttpOther4xx => AVERROR_HTTP_OTHER_4XX,
             Error::HttpServerError => AVERROR_HTTP_SERVER_ERROR,
+            //TODO: what error to put here?
+            Error::NoParserContext => AVERROR(10000),
             Error::Other { errno } => AVERROR(errno),
         }
     }
@@ -196,6 +199,7 @@ fn index(error: &Error) -> usize {
         Error::HttpNotFound => 24,
         Error::HttpOther4xx => 25,
         Error::HttpServerError => 26,
+        Error::NoParserContext => 27,
         Error::Other { errno: _ } => (-1isize) as usize,
     }
 }

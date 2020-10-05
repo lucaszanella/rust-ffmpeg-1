@@ -1,8 +1,10 @@
-use std::ops::{Deref, DerefMut};
-use std::ptr;
+use super::super::super::codec::Id;
 use super::super::super::util::cvec::CVec;
 use super::{Audio, Decoder, Subtitle, Video};
-use codec::{Context, Profile};
+use codec::{Codec, Context, Profile};
+use std::ops::{Deref, DerefMut};
+use std::ptr;
+
 use ffi::*;
 use {media, packet, Error, Frame, Rational};
 
@@ -62,23 +64,39 @@ impl Opened {
         }
     }
 
+    pub fn init_parser(&mut self, codec: &mut Codec) {
+        unsafe {
+            let p = av_parser_init(Into::<AVCodecID>::into(codec.id()) as i32);
+            if !p.is_null() {
+                self.avcodec_parser_context = Some(p)
+            } else {
+                self.avcodec_parser_context = None;
+            }
+        }
+    }
+
     pub fn parse2(&mut self, buf: &[u8], pts: i64, dts: i64, pos: i64) -> Result<CVec, Error> {
         unsafe {
             let mut poutbuf = self.packet.data_mut_ptr().unwrap();
             let mut poutbuf_size: i32 = 0;
-            match av_parser_parse2(
-                self.avcodec_parser_context.unwrap(),
-                self.as_mut_ptr(),
-                &mut poutbuf as *mut *mut u8,
-                &mut poutbuf_size as *mut i32,
-                buf.as_ptr(),
-                buf.len() as i32,
-                pts,
-                dts,
-                pos,
-            ) {
-                0 => Ok(CVec::new(poutbuf, poutbuf_size as usize)),
-                e => Err(Error::from(e)),
+            match self.avcodec_parser_context {
+                Some(avcodec_parser_context) => {
+                    match av_parser_parse2(
+                        avcodec_parser_context,
+                        self.as_mut_ptr(),
+                        &mut poutbuf as *mut *mut u8,
+                        &mut poutbuf_size as *mut i32,
+                        buf.as_ptr(),
+                        buf.len() as i32,
+                        pts,
+                        dts,
+                        pos,
+                    ) {
+                        0 => Ok(CVec::new(poutbuf, poutbuf_size as usize)),
+                        e => Err(Error::from(e)),
+                    }
+                }
+                None => Err(Error::NoParserContext),
             }
         }
     }

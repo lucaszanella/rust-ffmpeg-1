@@ -15,13 +15,11 @@ pub mod discard;
 pub mod context;
 pub use self::context::Context;
 
-pub mod parser;
-pub use self::parser::context::Context as ParserContext;
-
 pub mod capabilities;
 pub use self::capabilities::Capabilities;
 
 pub mod codec;
+pub use self::codec::Codec;
 
 pub mod parameters;
 pub use self::parameters::Parameters;
