@@ -2,25 +2,30 @@ use std::ptr;
 use std::rc::Rc;
 
 use super::super::context::Context as CodecContext;
+use super::super::packet::Packet;
+use super::super::super::codec::Id;
 use super::parser::Parser;
 
 //use super::{threading, Compliance, Debug, Flags, Id, Parameters};
 use ffi::*;
 use libc::c_int;
 use media;
+use std::cell::RefCell;
 use {Codec, Error};
 
-pub struct Context<'a> {
-    pub av_codec_context: &'a mut CodecContext,
+
+pub struct Context {
+    pub av_codec_context: RefCell<CodecContext>,
     ptr: *mut AVCodecParserContext,
     owner: Option<Rc<dyn Drop>>,
+    pub packet: Packet,
 }
 
-unsafe impl<'a> Send for Context<'a> {}
+unsafe impl Send for Context {}
 
-impl<'a> Context<'a> {
+impl Context {
     pub unsafe fn wrap(
-        av_codec_context: &'a mut CodecContext,
+        av_codec_context: RefCell<CodecContext>,
         ptr: *mut AVCodecParserContext,
         owner: Option<Rc<dyn Drop>>,
     ) -> Self {
@@ -28,6 +33,7 @@ impl<'a> Context<'a> {
             av_codec_context,
             ptr,
             owner,
+            packet: Packet::empty(),
         }
     }
 
@@ -40,23 +46,24 @@ impl<'a> Context<'a> {
     }
 }
 
-impl<'a> Context<'a> {
-    pub fn new(av_codec_context: &'a mut CodecContext, codec_id: i32) -> Self {
+impl Context {
+    pub fn new(av_codec_context: RefCell<CodecContext>, codec_id: Id) -> Self {
         unsafe {
             Context {
                 av_codec_context: av_codec_context,
-                ptr: av_parser_init(codec_id),
+                ptr: av_parser_init(Into::<AVCodecID>::into(codec_id) as i32),
                 owner: None,
+                packet: Packet::empty(),
             }
         }
     }
 
-    pub fn parser(self) -> Parser<'a> {
+    pub fn parser(self) -> Parser {
         Parser(self)
     }
 }
 
-impl<'a> Drop for Context<'a> {
+impl Drop for Context {
     fn drop(&mut self) {
         unsafe {
             av_parser_close(self.ptr);

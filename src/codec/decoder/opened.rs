@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use std::ptr;
-
+use super::super::super::util::cvec::CVec;
 use super::{Audio, Decoder, Subtitle, Video};
 use codec::{Context, Profile};
 use ffi::*;
@@ -58,6 +58,27 @@ impl Opened {
             match avcodec_receive_frame(self.as_mut_ptr(), frame.as_mut_ptr()) {
                 e if e < 0 => Err(Error::from(e)),
                 _ => Ok(()),
+            }
+        }
+    }
+
+    pub fn parse2(&mut self, buf: &[u8], pts: i64, dts: i64, pos: i64) -> Result<CVec, Error> {
+        unsafe {
+            let mut poutbuf = self.packet.data_mut_ptr().unwrap();
+            let mut poutbuf_size: i32 = 0;
+            match av_parser_parse2(
+                self.avcodec_parser_context.unwrap(),
+                self.as_mut_ptr(),
+                &mut poutbuf as *mut *mut u8,
+                &mut poutbuf_size as *mut i32,
+                buf.as_ptr(),
+                buf.len() as i32,
+                pts,
+                dts,
+                pos,
+            ) {
+                0 => Ok(CVec::new(poutbuf, poutbuf_size as usize)),
+                e => Err(Error::from(e)),
             }
         }
     }

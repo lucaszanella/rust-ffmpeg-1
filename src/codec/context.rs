@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use super::decoder::Decoder;
 use super::encoder::Encoder;
+use super::packet::Packet;
 use super::{threading, Compliance, Debug, Flags, Id, Parameters};
 use ffi::*;
 use libc::c_int;
@@ -12,13 +13,20 @@ use {Codec, Error};
 pub struct Context {
     ptr: *mut AVCodecContext,
     owner: Option<Rc<dyn Drop>>,
+    pub packet: Packet,
+    pub avcodec_parser_context: Option<*mut AVCodecParserContext>,
 }
 
 unsafe impl Send for Context {}
 
 impl Context {
     pub unsafe fn wrap(ptr: *mut AVCodecContext, owner: Option<Rc<dyn Drop>>) -> Self {
-        Context { ptr, owner }
+        Context {
+            ptr: ptr,
+            owner: owner,
+            packet: Packet::empty(),
+            avcodec_parser_context: None,
+        }
     }
 
     pub unsafe fn as_ptr(&self) -> *const AVCodecContext {
@@ -36,6 +44,8 @@ impl Context {
             Context {
                 ptr: avcodec_alloc_context3(ptr::null()),
                 owner: None,
+                packet: Packet::empty(),
+                avcodec_parser_context: None,
             }
         }
     }
