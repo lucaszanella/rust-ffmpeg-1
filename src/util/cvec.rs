@@ -1,10 +1,14 @@
 use std::{ptr, slice};
 use libc::{c_uchar};
 
+/*
 extern "C" {
     fn allocate_data(data_ptr: *mut *const c_uchar, data_len: *mut i32);
     fn deallocate_data(data_ptr: *const c_uchar);
 }
+*/
+
+//fn deallocate_data(data_ptr: *const c_uchar);
 
 pub struct CVec {
     ptr: *const c_uchar,
@@ -30,7 +34,7 @@ impl std::ops::Deref for CVec {
 
 impl Drop for CVec {
     fn drop(&mut self) {
-        unsafe { deallocate_data(self.ptr) };
+        //unsafe { deallocate_data(self.ptr) };
     }
 }
 
@@ -39,7 +43,7 @@ fn get_vec() -> CVec {
     let mut len = 0;
 
     unsafe {
-        allocate_data(&mut ptr, &mut len);
+        //allocate_data(&mut ptr, &mut len);
         assert!(!ptr.is_null());
         assert!(len >= 0);
 

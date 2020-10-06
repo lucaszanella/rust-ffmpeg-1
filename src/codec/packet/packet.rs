@@ -203,11 +203,14 @@ impl Packet {
     #[inline]
     pub fn data_mut_ptr(&mut self) -> Option<*mut u8> {
         unsafe {
+            Some(self.0.data)
+            /*
             if self.0.data.is_null() {
                 None
             } else {
                 Some(self.0.data)
             }
+            */
         }
     }
 

@@ -78,8 +78,8 @@ impl Opened {
     pub fn parse2(
         &mut self,
         buf: &[u8],
-        pts: i64,
-        dts: i64,
+        pts: Option<i64>,
+        dts: Option<i64>,
         pos: i64,
     ) -> Result<(i32, Option<CVec>), Error> {
         unsafe {
@@ -94,16 +94,24 @@ impl Opened {
                         &mut poutbuf_size as *mut i32,
                         buf.as_ptr(),
                         buf.len() as i32,
-                        pts,
-                        dts,
+                        pts.unwrap_or(AV_NOPTS_VALUE),
+                        dts.unwrap_or(AV_NOPTS_VALUE),
                         pos,
                     );
                     match poutbuf_size {
-                        x if x > 0 => Ok((
+                        x if x > 0 => {
+                            //println!("bytes parsed: {}", bytes_parsed);
+                            //println!("poutbuf_size: {}", poutbuf_size);
+                            Ok((
                             bytes_parsed,
                             Some(CVec::new(poutbuf, poutbuf_size as usize)),
-                        )),
-                        _ => Ok((0, None)),
+                        ))},
+                        0 => {
+                            //println!("bytes parsed: {}", bytes_parsed);
+                            //println!("poutbuf_size: {}", poutbuf_size);
+                            Ok((bytes_parsed, None))
+                        },
+                        _ => Err(Error::from(0))
                     }
                 }
                 None => Err(Error::NoParserContext),
